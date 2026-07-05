@@ -1,0 +1,94 @@
+# ─────────────────────────────────────────────────────────────
+#  ZEROSUM .gitignore — 
+# ─────────────────────────────────────────────────────────────
+
+# ── Build artifacts ──
+/target/
+**/*.rs.bk
+*.exe
+*.pdb
+*.d
+*.o
+*.so
+*.dylib
+
+# ── Encrypted identity / session / contact / history files ──
+# These are generated at runtime and contain secrets
+*.enc
+*.key.enc
+identity.*
+sessions.*
+contacts.*
+history.*
+
+# ── Server runtime data ──
+zerosum_server_data/
+zerosum.db
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ── Tor state — contains onion service private keys ──
+tor_state/
+tor_cache/
+tor_client_state/
+tor_client_cache/
+tor-data/
+zerosum_tor_state/
+zerosum_tor_cache/
+
+# ── Onion address files — leaking this defeats anonymity ──
+onion_address.txt
+server_addr.txt
+addr
+addr.txt
+
+# ── Test / second client data ──
+second_client/
+
+# ── OS junk ──
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── IDE / editor ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+
+# ── Logs ──
+*.log
+
+# ── Environment files that might contain secrets ──
+.env
+.env.*
+
+# ── Crash dumps / core dumps ──
+core
+core.*
+*.dmp
+hs_err_pid*
+
+# ── Zip / deployment bundles ──
+zerosum-deploy/
+zerosum-clean/
+zerosum-source.zip
+*.zip
+
+# ── Scripts (nuke scripts are local-only tools) ──
+/scripts/
+
+# ── Cargo caches (should never be in repo anyway) ──
+**/.cargo/
+!Cargo.toml
+!Cargo.lock

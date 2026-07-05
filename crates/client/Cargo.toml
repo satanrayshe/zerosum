@@ -1,0 +1,50 @@
+[package]
+name = "zerosum-client"
+version.workspace = true
+edition = "2024"
+
+[dependencies]
+zerosum-protocol = { path = "../protocol" }
+zerosum-crypto = { path = "../crypto" }
+zerosum-tor = { path = "../tor" }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+rand = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+
+# TUI
+ratatui = "0.29"
+crossterm = { version = "0.28", features = ["event-stream"] }
+
+# Crypto
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+chacha20poly1305 = "0.10"
+argon2 = "0.5"
+sha2 = "0.10"
+zeroize = { version = "1", features = ["derive"] }
+
+# Password input
+rpassword = "7"
+
+# Time
+chrono = "0.4"
+
+# Directories
+dirs = "6"
+
+# Futures
+futures = "0.3"
+
+# CLI args
+clap = { version = "4", features = ["derive"] }
+
+# Platform
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
