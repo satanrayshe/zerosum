@@ -103,11 +103,11 @@ impl Identity {
 }
 
 pub fn encrypt_blob(password: &str, plaintext: &[u8]) -> Result<Vec<u8>> {
-    let mut salt = [0u8; SALT_LEN];
+    let mut salt: [u8; SALT_LEN] = rand::random();
     rand::RngCore::fill_bytes(&mut OsRng, &mut salt);
     let key = derive_key(password, &salt)?;
 
-    let mut nonce = [0u8; NONCE_LEN];
+    let mut nonce: [u8; NONCE_LEN] = rand::random();
     rand::RngCore::fill_bytes(&mut OsRng, &mut nonce);
 
     let cipher = XChaCha20Poly1305::new((&key).into());
@@ -152,8 +152,12 @@ mod tests {
     #[test]
     fn test_identity_encrypt_decrypt_roundtrip() {
         let identity = Identity::generate(8);
-        let encrypted = identity.encrypt_to_bytes("test-password").unwrap();
-        let decrypted = Identity::decrypt_from_bytes("test-password", &encrypted).unwrap();
+        let password = {
+            let random_bytes: [u8; 32] = rand::random();
+            String::from_utf8_lossy(&random_bytes).to_string()
+        };
+        let encrypted = identity.encrypt_to_bytes(&password).unwrap();
+        let decrypted = Identity::decrypt_from_bytes(&password, &encrypted).unwrap();
 
         assert_eq!(identity.identity_public_key(), decrypted.identity_public_key());
         assert_eq!(identity.sign_spk(), decrypted.sign_spk());
