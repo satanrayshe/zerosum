@@ -20,6 +20,9 @@ identity.*
 sessions.*
 contacts.*
 history.*
+!crates/crypto/src/identity.rs
+!crates/client/src/contacts.rs
+!crates/client/src/history.rs
 
 # ── Server runtime data ──
 zerosum_server_data/
