@@ -1,0 +1,10 @@
+[package]
+name = "zerosum-protocol"
+version.workspace = true
+edition = "2024"
+
+[dependencies]
+serde = { workspace = true }
+bincode = { workspace = true }
+tokio = { workspace = true }
+thiserror = { workspace = true }

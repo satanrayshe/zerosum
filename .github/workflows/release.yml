@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: zerosum-linux-x86_64
+            ext: ""
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: zerosum-macos-x86_64
+            ext: ""
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: zerosum-windows-x86_64
+            ext: ".exe"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build release binaries
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Verify no secrets in build output
+        shell: bash
+        run: |
+          echo "Checking for leaked secrets in build directory..."
+          if find target/${{ matrix.target }}/release -name "*.enc" -o -name "*.db" -o -name "onion_address.txt" -o -name "identity.*" | grep -q .; then
+            echo "ERROR: Sensitive files found in build output!"
+            exit 1
+          fi
+          echo "Clean — no secrets in build output."
+
+      - name: Package — Linux/macOS
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          mkdir -p staging
+          cp target/${{ matrix.target }}/release/zerosum-server staging/
+          cp target/${{ matrix.target }}/release/zerosum-client staging/
+          chmod +x staging/zerosum-server staging/zerosum-client
+          cp README.md staging/
+          cd staging
+          tar czf ../${{ matrix.artifact }}.tar.gz *
+
+      - name: Package — Windows
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force staging
+          Copy-Item target/${{ matrix.target }}/release/zerosum-server.exe staging/
+          Copy-Item target/${{ matrix.target }}/release/zerosum-client.exe staging/
+          Copy-Item README.md staging/
+          Compress-Archive -Path staging/* -DestinationPath ${{ matrix.artifact }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}.tar.gz
+            ${{ matrix.artifact }}.zip
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          echo "## SHA-256 Checksums" > checksums.txt
+          echo '```' >> checksums.txt
+          find . -name "*.tar.gz" -o -name "*.zip" | sort | while read f; do
+            sha256sum "$f" >> checksums.txt
+          done
+          echo '```' >> checksums.txt
+          cat checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body_path: checksums.txt
+          files: |
+            **/*.tar.gz
+            **/*.zip
